@@ -1,20 +1,18 @@
 <?php
 /**
- * @name AddLightController
+ * @name EditLightController
  * @author root
  * @desc 添加路灯
  */
-class AddLightController extends BaseControllerAbstract {
+class EditLightController extends BaseControllerAbstract {
 
-	public function addLightAction() {
-		//$GLOBALS['HTTP_RAW_POST_DATA'] = "{\"level\":4,\"id\":2,\"lightName\":122,\"lightLat\":40.14111723476737,\"lightLng\":116.4048028932062}";
+	public function editLightAction() {
 		$postData = new PostParams();
 		
 		if (!$this->checkParams($postData)) {
 			return;
 		}
 		$id = $postData->getPost("id");
-		$level = $postData->getPost("level");
 		$lightInfo = array();
         $lightInfo['number'] = $postData->getPost("lightName");
 		$lightInfo['longitude'] = $postData->getPost("lightLng");
@@ -24,26 +22,21 @@ class AddLightController extends BaseControllerAbstract {
 		$config = $config->toArray();
 		
 		$lightTable = new LightTableModel($config["resources"]["database"]["params"]);
-		$rs = $lightTable->addLight($level, $id, $lightInfo);
-		$multipleTable = new MultipleTableModel($config["resources"]["database"]["params"]);
-		$frequencySetting = $multipleTable->getEffectFrequency($level, $id);
-		$planSetting = $multipleTable->getEffectPlan($level, $id);
+		$rs = $lightTable->editLight($id, $lightInfo);
 		if ($rs === true) {
 			$result = array('status'=>200, 'data'=>array('msg'=>'success','result'=>true), 'error'=>null);
 		} else {
-			$result = array('status'=>200, 'data'=>array('msg'=>'unsuccess','result'=>false), 'error'=>'and light failed');
+			$result = array('status'=>200, 'data'=>array('msg'=>'unsuccess','result'=>false), 'error'=>'edit light failed');
 		}
 		echo json_encode($result);
 	}
 
 	private function checkParams($postData) {
 		$id = $postData->getPost("id");
-		$level = $postData->getPost("level");
         $lightName = $postData->getPost("lightName");
 		$lightLng = $postData->getPost("lightLng");
 		$lightLat = $postData->getPost("lightLat");
 		if (!is_int($id) 
-					|| !is_int($level) 
 					|| !is_int($lightName) 
 					|| !is_numeric($lightLng) 
 					|| !is_numeric($lightLat)) {

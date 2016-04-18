@@ -7,7 +7,6 @@
 class AddLightController extends BaseControllerAbstract {
 
 	public function addLightAction() {
-		//$GLOBALS['HTTP_RAW_POST_DATA'] = "{\"level\":4,\"id\":2,\"lightName\":122,\"lightLat\":40.14111723476737,\"lightLng\":116.4048028932062}";
 		$postData = new PostParams();
 		
 		if (!$this->checkParams($postData)) {

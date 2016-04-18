@@ -4,10 +4,10 @@
  * @author root
  * @desc 添加路灯
  */
-class AddLightController extends BaseControllerAbstract {
+class IndexController extends BaseControllerAbstract {
 
-	public function addLightAction() {
-		//$GLOBALS['HTTP_RAW_POST_DATA'] = "{\"level\":4,\"id\":2,\"lightName\":122,\"lightLat\":40.14111723476737,\"lightLng\":116.4048028932062}";
+	public function indexAction() {
+		$GLOBALS['HTTP_RAW_POST_DATA'] = "{\"level\":4,\"id\":1,\"lightName\":122222,\"lightLat\":\"40.14111723476737\",\"lightLng\":\"116.4048028932062\"}";
 		$postData = new PostParams();
 		
 		if (!$this->checkParams($postData)) {
@@ -19,7 +19,6 @@ class AddLightController extends BaseControllerAbstract {
         $lightInfo['number'] = $postData->getPost("lightName");
 		$lightInfo['longitude'] = $postData->getPost("lightLng");
 		$lightInfo['latitude'] = $postData->getPost("lightLat");
-			
 		$config = Yaf_Registry::get("config");
 		$config = $config->toArray();
 		

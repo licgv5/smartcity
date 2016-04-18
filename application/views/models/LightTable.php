@@ -114,21 +114,25 @@ class LightTableModel extends MysqlOperationModel {
 			} else {
 				return false;
 			}
+			//var_dump($parent);
+			//var_dump($parentTable);
 			$affected = self::$_dbh->exec("INSERT INTO `light` (`longitude`, `latitude`, `number`, `$parent`) 
-						VALUES ('$longitude', '$latitude', $number, $id)");
+						VALUES ($longitude, $latitude, $number, $id)");
 			if ($affected === false) {
 				$err = $conn->errorInfo();
 				SeasLog::error($err[2]);
 				return false;
 			}
 
-			/*$affected = self::$_dbh->exec("INSERT INTO `EEPROM` (`hardwareNum`) 
+			/*echo "aaaaaaa\n";
+			$affected = self::$_dbh->exec("INSERT INTO `EEPROM` (`hardwareNum`) 
 						VALUES ($number)");
 			if ($affected === false) {
 				$err = $conn->errorInfo();
 				SeasLog::error($err[2]);
 				return false;
 			}*/
+			 //echo "bbbbbbbbbb\n";
 			// 同步计划
 			$affected = self::$_dbh->exec("UPDATE `light` a, `$parentTable` b SET 
 						a.plan_id=b.plan_id, 
@@ -150,6 +154,7 @@ class LightTableModel extends MysqlOperationModel {
 				SeasLog::error($err[2]);
 				return false;
 			}
+			//echo "ccccccccccccccc\n";
 		} catch(PDOException $e) {
 			SeasLog::error($e->getMessage());
 			return false;
@@ -164,8 +169,8 @@ class LightTableModel extends MysqlOperationModel {
 			$number = $lightInfo['number'];
 
 			$affected = self::$_dbh->exec("UPDATE `light` a, EEPROM b SET 
-					a.longitude='$longitude',
-					a.latitude='$latitude',
+					a.longitude=$longitude,
+					a.latitude=$latitude,
 					a.number=$number,
 					b.hardwareNum=$number WHERE a.id=$id AND b.light_id=a.id"); 
 			if ($affected === false) {

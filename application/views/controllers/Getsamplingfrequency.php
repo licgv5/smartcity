@@ -1,36 +1,38 @@
 <?php
 /**
- * @name GetGeographyInfoController
+ * @name GetSamplingFrequencyController
  * @author root
- * @desc 获取地理信息
+ * @desc 获取已设置的采样频率
  */
-class GetGeographyInfoController extends BaseControllerAbstract {
 
-	public function getGeographyInfoAction() {
-		//$GLOBALS['HTTP_RAW_POST_DATA'] = "{\"level\":0,\"id\":0}";
+class GetSamplingFrequencyController extends BaseControllerAbstract {
+
+	public function getSamplingFrequencyAction() {
 		$postData = new PostParams();
 		if (!self::checkParams($postData)) {
 			return;
 		}
-		
+
 		$id = $postData->getPost("id");
 		$level = $postData->getPost("level");
 		$config = Yaf_Registry::get("config");
 		$config = $config->toArray();
-		
+
 		$multipleTable = new MultipleTableModel($config["resources"]["database"]["params"]);
-		$lightIds = $multipleTable->getLightIdByForefather($level, $id);
-		$lightTable = new LightTableModel($config["resources"]["database"]["params"]);
-		$geographyInfo = $lightTable->getGeographyInfo($lightIds);
+		$rs = $multipleTable->getEffectFrequency($level, $id);
+		if ($rs !== false) {
+			$set = $rs;	
+		}
 		$result = array(
-			'status'=>200, 
-			'data'=>array(
-				'location'=>$geographyInfo,
-				'msg'=>'success',
-				'result'=>true
-				), 
-			'error'=>null);
+					'status'=>200, 
+					'data'=>array(
+						'msg'=>'success',
+						'result'=>true,
+						'set'=>$set,
+						), 
+					'error'=>null);
 		echo json_encode($result);
+
 	}
 
 	private function checkParams($postData) {
@@ -42,7 +44,7 @@ class GetGeographyInfoController extends BaseControllerAbstract {
 						'data'=>array(
 							'msg'=>'unsuccess',
 							'result'=>false), 
-						'error'=>'id or level is not int');
+						'error'=>'params error');
 			echo json_encode($result);
 			return false;
 		}

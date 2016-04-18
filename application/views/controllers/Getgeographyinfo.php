@@ -7,7 +7,7 @@
 class GetGeographyInfoController extends BaseControllerAbstract {
 
 	public function getGeographyInfoAction() {
-		//$GLOBALS['HTTP_RAW_POST_DATA'] = "{\"level\":0,\"id\":0}";
+		//$GLOBALS['HTTP_RAW_POST_DATA'] = "{\"level\":0,\"id\":0,}";
 		$postData = new PostParams();
 		if (!self::checkParams($postData)) {
 			return;

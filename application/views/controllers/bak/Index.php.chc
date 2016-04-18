@@ -1,0 +1,101 @@
+<?php
+/**
+ * @name ChangeCountryController
+ * @author root
+ * @desc 修改国家控制器
+ */
+class indexController extends Yaf_Controller_Abstract {
+
+	public function indexAction() {
+		$config = Yaf_Registry::get("config");
+		$config = $config->toArray();
+		$_PSOT["operation"] = 1;
+		$_PSOT["country_name"] = "日本";
+		if (!self::checkParams()) {
+			return;
+		}
+		$operation = $this->getRequest()->getPost("operation", 1);
+		$countryTable = new CountryTableModel($config["resources"]["database"]["params"]);
+		switch($operation) {
+			case 0:
+				$countryName = $this->getRequest()->getPost("country_name", "aaad"); 
+				self::addCountry($countryTable, $countryName);
+				break;
+			case 1:
+				$countryID = $this->getRequest()->getPost("country_id", 21); 
+				self::delCountry($countryTable, $countryID);
+				break;
+			default:
+				$result = array(
+							'status'=>200, 
+							'data'=>array(
+								'msg'=>'unsuccess',
+								'result'=>false), 
+							'error'=>'operation between 1 and 2');
+				echo json_encode($result);
+		}
+	}
+
+	private function addCountry($countryTable, $countryName) {
+		if ($countryTable->addCountry($countryName)) {
+			$result = array('status'=>200, 'data'=>array('msg'=>'success','result'=>true), 'error'=>null);
+		} else {
+			$result = array('status'=>200, 'data'=>array('msg'=>'unsuccess','result'=>false), 'error'=>null);
+		}
+		echo json_encode($result);
+	}
+
+	private function delCountry($countryTable, $countryID) {
+		if ($countryTable->delCountry($countryID)) {
+			$result = array('status'=>200, 'data'=>array('msg'=>'success','result'=>true), 'error'=>null);
+		} else {
+			$result = array('status'=>200, 'data'=>array('msg'=>'unsuccess','result'=>false), 'error'=>null);
+		}
+		echo json_encode($result);
+	}
+
+	private function checkParams() {
+		$operation = $this->getRequest()->getPost("operation", 0);
+		//var_dump($operation);
+		if ($operation !== 0 && $operation !== 1) {
+			$result = array(
+						'status'=>200, 
+						'data'=>array(
+							'msg'=>'unsuccess',
+							'result'=>false), 
+						'error'=>'operation between 0 and 1');
+			echo json_encode($result);
+			return false;
+		}
+
+		if ($operation === 0) {
+			$countryName = $this->getRequest()->getPost("country_name", 'aaa');
+			if ($countryName === false || $countryName === "" || $countryName === NULL) {
+				$result = array(
+							'status'=>200, 
+							'data'=>array(
+								'msg'=>'unsuccess',
+								'result'=>false), 
+							'error'=>'country_name is error');
+				echo json_encode($result);
+				return false;
+			} 
+		}
+
+		if ($operation === 1) {
+			$countryID = $this->getRequest()->getPost("country_id");
+			if (!is_int($countryID)) {
+				$result = array(
+							'status'=>200, 
+							'data'=>array(
+								'msg'=>'unsuccess',
+								'result'=>false), 
+							'error'=>'country_id is error');
+				echo json_encode($result);
+				return false;
+			} 
+		}
+		return true;
+	}
+}
+

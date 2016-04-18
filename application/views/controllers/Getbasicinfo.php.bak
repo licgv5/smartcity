@@ -1,13 +1,12 @@
 <?php
 /**
- * @name GetGeographyInfoController
+ * @name GetChildNodeController
  * @author root
- * @desc 获取地理信息
+ * @desc 获取基本信息
  */
-class GetGeographyInfoController extends BaseControllerAbstract {
+class GetChildNodeController extends Yaf_Controller_Abstract {
 
-	public function getGeographyInfoAction() {
-		//$GLOBALS['HTTP_RAW_POST_DATA'] = "{\"level\":0,\"id\":0}";
+	public function getChildNodeAction() {
 		$postData = new PostParams();
 		if (!self::checkParams($postData)) {
 			return;
@@ -21,15 +20,10 @@ class GetGeographyInfoController extends BaseControllerAbstract {
 		$multipleTable = new MultipleTableModel($config["resources"]["database"]["params"]);
 		$lightIds = $multipleTable->getLightIdByForefather($level, $id);
 		$lightTable = new LightTableModel($config["resources"]["database"]["params"]);
-		$geographyInfo = $lightTable->getGeographyInfo($lightIds);
-		$result = array(
-			'status'=>200, 
-			'data'=>array(
-				'location'=>$geographyInfo,
-				'msg'=>'success',
-				'result'=>true
-				), 
-			'error'=>null);
+		$workLight = $lightTable->getWorkLightNum($lightIds);
+		$faultLight = $lightTable->getFaultLightNum($lightIds);
+		
+		$result = array('status'=>200, 'data'=>array('msg'=>'success','result'=>true,'nodes'=>$rs), 'error'=>null);
 		echo json_encode($result);
 	}
 

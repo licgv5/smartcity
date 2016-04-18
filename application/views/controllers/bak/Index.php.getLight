@@ -1,0 +1,29 @@
+<?php
+/**
+ * @name GetLightIdForUngroupedController
+ * @author root
+ * @desc 获取未分组路灯
+ */
+class IndexController extends Yaf_Controller_Abstract {
+
+	public function indexAction() {
+		$set_id = $this->getRequest()->getPost("set_id");
+		$set_id = 1;
+
+		$config = Yaf_Registry::get("config");
+		$config = $config->toArray();
+		$lightTable = new LightTableModel($config["resources"]["database"]["params"]);
+		$queryResult = $lightTable->getLightIdForUngrouped($set_id);
+		$ids = array();
+		//echo implode(",",$queryResult);
+		//var_dump($queryResult);
+		foreach($queryResult as $row) {
+			if (array_key_exists("id", $row)) {
+				$ids[] = intval($row["id"]);
+			}
+		}
+		$result = array('status'=>200, 'data'=>array('msg'=>'success','result'=>true,'light_id'=>$ids), 'error'=>null);
+		echo json_encode($result);
+	}
+
+}

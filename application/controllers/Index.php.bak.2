@@ -1,0 +1,142 @@
+<?php
+/**
+ * @name SetLightPlanController
+ * @author root
+ * @desc 设置路灯亮度
+ */
+class IndexController extends BaseControllerAbstract {
+
+	public function indexAction() {
+		$GLOBALS['HTTP_RAW_POST_DATA'] = "{\"id\":1,\"level\":4,\"plans\":[{\"start\":0,\"end\":150,\"brightness\":50}]}";
+		$postData = new PostParams();
+		if (!self::checkParams($postData)) {
+			return;
+		}
+		
+		$id = $postData->getPost("id");
+		$level = $postData->getPost("level");
+		$plans = $postData->getPost("plans");
+		$config = Yaf_Registry::get("config");
+		$config = $config->toArray();
+	
+		$formatPlans = $this->formatPlan($plans);
+		if ($formatPlans === false) {
+			$result = array(
+						'status'=>200, 
+						'data'=>array(
+							'msg'=>'unsuccess',
+							'result'=>false
+							), 
+						'error'=>'plans error');
+			echo json_encode($result);
+			return;
+		}
+
+		$multipleTable = new MultipleTableModel($config["resources"]["database"]["params"]);
+		if ($multipleTable->setLightPlans($level, $id, $formatPlans) === false) {
+			// 对应层级设置plans
+			$result = array(
+						'status'=>200, 
+						'data'=>array(
+							'msg'=>'unsuccess',
+							'result'=>false
+							), 
+						'error'=>'set plan error');
+			echo json_encode($result);
+			return;
+		}
+		// 获取当前level下所有对该计划生效的灯
+		$lightsPlan = $multipleTable->getEffectLight($level, $id);
+		var_dump($lightsPlan);
+		if ($lightsPlan === false || count($lightsPlan) ===0){
+			$result = array(
+				'status'=>200, 
+				'data'=>array(
+					'msg'=>'success',
+					'result'=>true
+					), 
+				'error'=>null);
+			echo json_encode($result);
+			return;
+		}
+		// 向后台发送指令
+		//$lightTable = new LightControlTableModel($config["resources"]["database"]["params"]);
+		//$rs = $lightTable->insertPlanControl($lightIds, $brightness);
+		$rs=true;
+		if ($rs === true) {
+			$result = array(
+				'status'=>200, 
+				'data'=>array(
+					'msg'=>'success',
+					'result'=>true
+					), 
+				'error'=>null);
+		} else {
+			$result = array(
+				'status'=>200, 
+				'data'=>array(
+					'msg'=>'unsuccess',
+					'result'=>false
+					), 
+				'error'=>'set plan error');
+		}
+		echo json_encode($result);
+	}
+
+	private function checkParams($postData) {
+		$id = $postData->getPost("id");
+		$level = $postData->getPost("level");
+		$plans = $postData->getPost("plans");
+		if (!is_int($id) || !is_int($level) || !is_array($plans)) {
+			$result = array(
+						'status'=>200, 
+						'data'=>array(
+							'msg'=>'unsuccess',
+							'result'=>false), 
+						'error'=>'params error');
+			echo json_encode($result);
+			return false;
+		}
+		return true;
+	}
+
+	protected function formatPlan($plans) {
+		// 对计划按照时间先后排序，计算分割点
+		foreach ($plans as $key => $plan) {
+			if ($plan['end'] < $plan['start']) {
+				return false;
+			}
+			$startPoint[$key] = $plan['start'];
+		}
+		array_multisort($startPoint, SORT_ASC, $plans);
+		$formatPlan = array();
+		$formatPlan['plan_point'][] = 0;
+		foreach ($plans as $key => $plan) {
+			$lastPoint = end($formatPlan['plan_point']);
+			if ($plan['start'] ===  $lastPoint) {
+				$formatPlan['plan_point'][] = $plan['end'];
+				$formatPlan['plan_generator'][] = 1;
+				$formatPlan['brightness'][] = $plan['brightness'];
+			} else {
+				return false;
+			}
+		}
+		// 结束时间不是24点，则补全
+		if (end($formatPlan['plan_point']) < 24*60) {
+			$formatPlan['plan_point'][] = 24*60;
+			$formatPlan['plan_generator'][] = 0;
+			$formatPlan['brightness'][] = 0;
+		}
+		// 计划超过5个则失败, 小于5个则补全
+		if (count($formatPlan['plan_point']) > 6) {
+			return false;
+		} else if (count($formatPlan['plan_point']) < 6) {
+			while(count($formatPlan['plan_point']) < 6) {
+				$formatPlan['plan_point'][] = 24*60;
+				$formatPlan['plan_generator'][] = 0;
+				$formatPlan['brightness'][] = 0;
+			}
+		}
+		return $formatPlan;
+	}
+}
